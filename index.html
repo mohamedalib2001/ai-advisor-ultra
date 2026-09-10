@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0c29">
+<meta name="description" content="AI Advisor Ultra - Agent ذكي كامل بمعايير 2025">
+<title>🚀 AI Advisor Ultra - النسخة الخارقة</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<!-- Tesseract.js for OCR -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/tesseract.min.js"></script>
+
+<!-- WebLLM (يُحمّل عند الحاجة فقط) -->
+<script type="module" id="webllm-loader">
+  window.loadWebLLM = async function() {
+    if (window._webllmLoaded) return window._webllmModule;
+    const module = await import('https://esm.run/@mlc-ai/web-llm@0.2.71');
+    window._webllmModule = module;
+    window._webllmLoaded = true;
+    return module;
+  };
+</script>
+
+<style>
+/* ==================== الأساسيات ==================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #7b2ff7;
+  --secondary: #00d4ff;
+  --accent: #ff2e93;
+  --success: #27ae60;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --dark: #0f0c29;
+  --card-bg: rgba(255,255,255,0.05);
+  --border: rgba(255,255,255,0.1);
+  --text: #e0e0e0;
+}
+body {
+  font-family: 'Segoe UI', 'Cairo', Tahoma, sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  padding: 20px;
+  line-height: 1.7;
+}
+.container { max-width: 1400px; margin: 0 auto; }
+
+/* ==================== Header ==================== */
+header {
+  text-align: center;
+  padding: 30px 20px;
+  background: var(--card-bg);
+  border-radius: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(123,47,247,0.2) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+header h1 {
+  font-size: 2.2em;
+  background: linear-gradient(90deg, #00d4ff, #7b2ff7, #ff2e93);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 10px;
+  position: relative;
+}
+header p { color: #aaa; font-size: 1em; position: relative; }
+.status-badges {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 15px;
+  position: relative;
+}
+.status-badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.status-online { background: rgba(39,174,96,0.3); color: #2ecc71; border: 1px solid #2ecc71; }
+.status-offline { background: rgba(231,76,60,0.3); color: #e74c3c; border: 1px solid #e74c3c; }
+.status-loading { background: rgba(243,156,18,0.3); color: #f39c12; border: 1px solid #f39c12; }
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: blink 1.5s infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ==================== Tabs الرئيسية ==================== */
+.main-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  background: var(--card-bg);
+  padding: 12px;
+  border-radius: 15px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+.main-tab {
+  padding: 12px 22px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  color: #ccc;
+  font-family: inherit;
+  font-size: 0.95em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.main-tab:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+.main-tab.active {
+  background: linear-gradient(90deg, #7b2ff7, #00d4ff);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 5px 20px rgba(123,47,247,0.4);
+}
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==================== Cards ==================== */
+.card {
+  background: var(--card-bg);
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s ease;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.card h2 {
+  color: var(--secondary);
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid rgba(0,212,255,0.3);
+  font-size: 1.4em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card h3 { color: #fff; margin: 15px 0 10px; }
+
+/* ==================== Buttons ==================== */
+.btn {
+  padding: 12px 28px;
+  font-size: 1em;
+  font-weight: bold;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #7b2ff7, #00d4ff);
+  box-shadow: 0 6px 20px rgba(123,47,247,0.4);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,212,255,0.6);
+}
+.btn-secondary {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: rgba(255,255,255,0.2); }
+.btn-danger { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.btn-success { background: linear-gradient(90deg, #27ae60, #2ecc71); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+.btn-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 15px 0;
+}
+
+/* ==================== Loading ==================== */
+#loading {
+  display: none;
+  text-align: center;
+  padding: 40px 30px;
+  background: var(--card-bg);
+  border-radius: 15px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+.spinner {
+  width: 60px; height: 60px;
+  border: 4px solid rgba(0,212,255,0.2);
+  border-top-color: #00d4ff;
+  border-right-color: #7b2ff7;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.progress-bar {
+  width: 100%; max-width: 500px;
+  height: 6px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 3px;
+  margin: 20px auto;
+  overflow: hidden;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7b2ff7, #00d4ff);
+  width: 0%;
+  transition: width 0.4s ease;
+  border-radius: 3px;
+}
+.loading-step { color: #00d4ff; font-size: 1em; min-height: 30px; }
+
+/* ==================== Score Ring ==================== */
+.score-section {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 30px;
+  align-items: center;
+}
+.score-ring { position: relative; width: 200px; height: 200px; margin: 0 auto; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-text {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%); text-align: center;
+}
+.score-value {
+  font-size: 2.5em; font-weight: bold;
+  background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.score-label { font-size: 0.85em; color: #999; }
+
+.perf-tag {
+  display: inline-block; padding: 8px 22px;
+  border-radius: 25px; font-weight: bold;
+  font-size: 1.1em; margin-bottom: 15px;
+}
+.tier-weak { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.tier-mid { background: linear-gradient(90deg, #f39c12, #e67e22); }
+.tier-good { background: linear-gradient(90deg, #27ae60, #16a085); }
+.tier-high { background: linear-gradient(90deg, #2980b9, #3498db); }
+.tier-extreme { background: linear-gradient(90deg, #8e44ad, #c0392b); }
+
+/* ==================== Specs ==================== */
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+}
+.spec-item {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 10px;
+  border-right: 4px solid #7b2ff7;
+  transition: all 0.3s;
+}
+.spec-item:hover { transform: translateX(-5px); border-right-color: #00d4ff; }
+.spec-item.good { border-right-color: var(--success); }
+.spec-item.warning { border-right-color: var(--warning); }
+.spec-item.danger { border-right-color: var(--danger); }
+.spec-label { font-size: 0.85em; color: #999; margin-bottom: 5px; }
+.spec-value { font-size: 1.05em; font-weight: bold; color: #fff; word-break: break-word; }
+
+/* ==================== Charts ==================== */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.chart-box {
+  background: rgba(0,0,0,0.3);
+  border-radius: 12px;
+  padding: 20px;
+  height: 320px;
+  position: relative;
+}
+
+/* ==================== Models ==================== */
+.ai-models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+  gap: 18px;
+}
+.model-card {
+  background: rgba(0,0,0,0.35);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+  position: relative;
+}
+.model-card:hover {
+  transform: translateY(-5px);
+  border-color: #00d4ff;
+  box-shadow: 0 10px 30px rgba(0,212,255,0.2);
+}
+.model-card .tag {
+  position: absolute; top: 15px; left: 15px;
+  padding: 4px 12px; border-radius: 15px;
+  font-size: 0.75em; font-weight: bold;
+}
+.tag-free { background: var(--success); }
+.tag-paid { background: var(--warning); }
+.tag-hot { background: linear-gradient(90deg, #ff2e93, #ff5722); }
+.model-card h3 { color: #fff; margin: 25px 0 8px; font-size: 1.15em; }
+.model-dev { color: #7b2ff7; font-size: 0.9em; font-weight: bold; margin-bottom: 12px; }
+.model-desc { color: #bbb; font-size: 0.9em; margin-bottom: 12px; }
+.model-info { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.info-badge {
+  background: rgba(123,47,247,0.2);
+  border: 1px solid rgba(123,47,247,0.5);
+  padding: 4px 12px; border-radius: 12px;
+  font-size: 0.8em; color: #b39ddb;
+}
+.model-link {
+  display: inline-block; margin-top: 12px;
+  padding: 8px 20px;
+  background: linear-gradient(90deg, #7b2ff7, #00d4ff);
+  color: white; text-decoration: none;
+  border-radius: 8px; font-weight: bold;
+  font-size: 0.9em;
+  transition: all 0.3s;
+}
+.model-link:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0,212,255,0.4); }
+
+/* ==================== Chat ==================== */
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 15px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.chat-header {
+  padding: 15px 20px;
+  background: linear-gradient(90deg, rgba(123,47,247,0.3), rgba(0,212,255,0.3));
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.chat-avatar {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5em;
+  box-shadow: 0 0 15px rgba(46,204,113,0.5);
+}
+.chat-info { flex: 1; }
+.chat-info h4 { color: #fff; font-size: 1em; margin-bottom: 2px; }
+.chat-info p { color: #2ecc71; font-size: 0.8em; display: flex; align-items: center; gap: 5px; }
+.chat-actions { display: flex; gap: 8px; }
+.chat-action-btn {
+  background: rgba(255,255,255,0.1);
+  border: none; color: white;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1em;
+  transition: all 0.3s;
+}
+.chat-action-btn:hover { background: rgba(0,212,255,0.3); }
+.chat-action-btn.active { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.chat-messages::-webkit-scrollbar { width: 6px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(123,47,247,0.5); border-radius: 3px; }
+
+.message {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 15px;
+  font-size: 0.95em;
+  line-height: 1.6;
+  animation: msgIn 0.3s ease;
+  word-wrap: break-word;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.message.bot {
+  background: rgba(0,212,255,0.15);
+  border: 1px solid rgba(0,212,255,0.3);
+  color: #e0e0e0;
+  align-self: flex-start;
+  border-top-right-radius: 4px;
+}
+.message.user {
+  background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+  color: white;
+  align-self: flex-end;
+  border-top-left-radius: 4px;
+}
+.message.system {
+  background: rgba(243,156,18,0.15);
+  border: 1px solid rgba(243,156,18,0.3);
+  color: #f39c12;
+  align-self: center;
+  font-size: 0.85em;
+  max-width: 95%;
+}
+.message.typing {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 15px 20px;
+}
+.typing-dots { display: flex; gap: 4px; }
+.typing-dots span {
+  width: 8px; height: 8px;
+  background: #00d4ff;
+  border-radius: 50%;
+  animation: typing 1.4s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-8px); opacity: 1; }
+}
+
+.chat-input-area {
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+}
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  max-height: 100px;
+  overflow-y: auto;
+}
+.quick-reply {
+  background: rgba(123,47,247,0.2);
+  border: 1px solid rgba(123,47,247,0.5);
+  color: #b39ddb;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: inherit;
+}
+.quick-reply:hover {
+  background: rgba(0,212,255,0.3);
+  border-color: #00d4ff;
+  color: white;
+}
+.input-row { display: flex; gap: 8px; align-items: center; }
+.chat-input {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 25px;
+  padding: 12px 20px;
+  color: white;
+  font-size: 0.95em;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.3s;
+}
+.chat-input:focus { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+.chat-input::placeholder { color: #666; }
+
+.chat-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1em;
+  transition: all 0.3s;
+}
+.chat-btn.send { background: linear-gradient(135deg, #7b2ff7, #00d4ff); }
+.chat-btn.send:hover:not(:disabled) { transform: scale(1.1); }
+.chat-btn.voice { background: rgba(255,255,255,0.1); }
+.chat-btn.voice:hover { background: rgba(0,212,255,0.3); }
+.chat-btn.voice.recording { background: linear-gradient(90deg, #e74c3c, #c0392b); animation: pulseRec 1s infinite; }
+@keyframes pulseRec {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(231,76,60,0.7); }
+  50% { box-shadow: 0 0 0 15px rgba(231,76,60,0); }
+}
+.chat-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ==================== WebLLM Loading ==================== */
+.webllm-status {
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+}
+.webllm-progress {
+  height: 8px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+.webllm-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  width: 0%;
+  transition: width 0.3s;
+}
+
+/* ==================== Achievements ==================== */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+.achievement {
+  background: rgba(0,0,0,0.3);
+  padding: 18px;
+  border-radius: 12px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.3s;
+  position: relative;
+}
+.achievement.locked { opacity: 0.4; filter: grayscale(1); }
+.achievement.unlocked {
+  border-color: #f39c12;
+  box-shadow: 0 0 20px rgba(243,156,18,0.3);
+}
+.achievement-icon { font-size: 2.5em; margin-bottom: 8px; }
+.achievement-name { font-weight: bold; color: #fff; margin-bottom: 5px; }
+.achievement-desc { font-size: 0.85em; color: #999; }
+
+/* ==================== Benchmark ==================== */
+.benchmark-progress {
+  background: rgba(0,0,0,0.4);
+  border-radius: 10px;
+  padding: 20px;
+  margin: 15px 0;
+}
+.benchmark-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.benchmark-item:last-child { border-bottom: none; }
+.benchmark-value { color: #00d4ff; font-weight: bold; }
+
+/* ==================== Ollama ==================== */
+.ollama-models {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+}
+.ollama-model {
+  background: rgba(0,0,0,0.3);
+  padding: 15px;
+  border-radius: 10px;
+  border-right: 4px solid #27ae60;
+}
+
+/* ==================== RAG ==================== */
+.rag-upload {
+  border: 2px dashed rgba(123,47,247,0.5);
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.rag-upload:hover { border-color: #00d4ff; background: rgba(0,212,255,0.05); }
+.rag-docs { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+.rag-doc {
+  background: rgba(39,174,96,0.2);
+  border: 1px solid #27ae60;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==================== Vision ==================== */
+.vision-preview {
+  max-width: 100%;
+  border-radius: 12px;
+  margin-top: 15px;
+  border: 2px solid var(--border);
+}
+
+/* ==================== Modal ==================== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(5px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fadeIn 0.3s; }
+.modal {
+  background: linear-gradient(135deg, #1a1535, #24243e);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  border: 1px solid rgba(0,212,255,0.3);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.modal h2 { color: #00d4ff; margin-bottom: 20px; }
+.modal-close {
+  float: left;
+  background: rgba(231,76,60,0.2);
+  border: 1px solid #e74c3c;
+  color: #e74c3c;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2em;
+  transition: all 0.3s;
+}
+.modal-close:hover { background: #e74c3c; color: white; }
+
+/* ==================== Toast ==================== */
+.toast {
+  position: fixed;
+  bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: linear-gradient(90deg, #7b2ff7, #00d4ff);
+  color: white;
+  padding: 15px 30px;
+  border-radius: 50px;
+  font-weight: bold;
+  opacity: 0;
+  transition: all 0.4s;
+  z-index: 99999;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  max-width: 90%;
+  text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+/* ==================== Voice Modal ==================== */
+.voice-visualizer {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  margin: 20px 0;
+}
+.voice-bar {
+  width: 5px;
+  background: linear-gradient(180deg, #00d4ff, #7b2ff7);
+  border-radius: 3px;
+  transition: height 0.1s;
+}
+.voice-text {
+  text-align: center;
+  font-size: 1.1em;
+  color: #00d4ff;
+  min-height: 40px;
+  padding: 10px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  margin-top: 15px;
+}
+
+/* ==================== Responsive ==================== */
+@media (max-width: 768px) {
+  header h1 { font-size: 1.5em; }
+  .score-section { grid-template-columns: 1fr; }
+  .ai-models-grid { grid-template-columns: 1fr; }
+  .specs-grid { grid-template-columns: 1fr; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .main-tab { padding: 8px 14px; font-size: 0.85em; }
+  .btn { padding: 10px 20px; font-size: 0.9em; }
+  .chat-container { height: 500px; }
+}
+
+/* ==================== Scrollbar ==================== */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(#7b2ff7, #00d4ff);
+  border-radius: 5px;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- ==================== Header ==================== -->
+  <header>
+    <h1>🚀 AI Advisor Ultra</h1>
+    <p>Agent ذكي كامل • WebLLM • Voice • Vision • Ollama • RAG • Multi-Agent</p>
+    <div class="status-badges">
+      <span class="status-badge status-loading" id="webgpuStatus">
+        <span class="status-dot"></span> WebGPU: جاري الفحص
+      </span>
+      <span class="status-badge status-loading" id="ollamaStatus">
+        <span class="status-dot"></span> Ollama: جاري الفحص
+      </span>
+      <span class="status-badge status-online" id="memoryStatus">
+        <span class="status-dot"></span> الذاكرة: جاهزة
+      </span>
+      <span class="status-badge status-offline" id="webllmStatus">
+        <span class="status-dot"></span> WebLLM: غير محمّل
+      </span>
+    </div>
+  </header>
+
+  <!-- ==================== Main Tabs ==================== -->
+  <div class="main-tabs">
+    <button class="main-tab active" onclick="switchMainTab(event, 'analyze')">
+      📊 <span>التحليل</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'chat')">
+      🤖 <span>الدردشة الذكية</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'ollama')">
+      🔌 <span>Ollama</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'benchmark')">
+      ⚡ <span>قياس الأداء</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'rag')">
+      📚 <span>قاعدة المعرفة</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'vision')">
+      👁️ <span>الرؤية</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'achievements')">
+      🏆 <span>الإنجازات</span>
+    </button>
+    <button class="main-tab" onclick="openSettings()">
+      ⚙️ <span>الإعدادات</span>
+    </button>
+  </div>
+
+  <!-- ==================== Tab: Analyze ==================== -->
+  <div class="tab-content active" id="tab-analyze">
+    <div class="btn-group">
+      <button class="btn btn-primary" id="analyzeBtn" onclick="startAnalysis()">
+        🔍 ابدأ التحليل الشامل
+      </button>
+      <button class="btn btn-secondary" onclick="exportReport()" id="exportBtn" disabled>
+        📄 تصدير
+      </button>
+      <button class="btn btn-secondary" onclick="window.print()" id="printBtn" disabled>
+        🖨️ طباعة
+      </button>
+    </div>
+    <div id="loading">
+      <div class="spinner"></div>
+      <p style="font-size:1.2em; color:#00d4ff;">جاري التحليل...</p>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="loading-step" id="loadingStep">بدء الفحص...</div>
+    </div>
+    <div id="results"></div>
+  </div>
+
+  <!-- ==================== Tab: Chat ==================== -->
+  <div class="tab-content" id="tab-chat">
+    <div class="card">
+      <h2>🤖 الدردشة الذكية</h2>
+      
+      <div class="webllm-status" id="webllmStatusBox">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div>
+            <strong>🧠 محرك LLM الحقيقي (WebLLM)</strong>
+            <p style="font-size:0.85em; color:#999; margin-top:5px;">يعمل بالكامل في المتصفح — بدون خادم</p>
+          </div>
+          <button class="btn btn-primary" onclick="loadWebLLM()" id="loadWebllmBtn" style="padding:10px 20px; font-size:0.9em;">
+            📥 تحميل النموذج
+          </button>
+        </div>
+        <div class="webllm-progress" style="display:none;" id="webllmProgress">
+          <div class="webllm-progress-fill" id="webllmProgressFill"></div>
+        </div>
+        <div id="webllmProgressText" style="font-size:0.85em; color:#00d4ff; margin-top:8px;"></div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-avatar" id="chatAvatar">🤖</div>
+          <div class="chat-info">
+            <h4 id="chatTitle">Agent Ultra</h4>
+            <p><span class="status-dot" style="width:8px;height:8px;background:#2ecc71;border-radius:50%;"></span><span id="chatEngine">جاهز (وضع القواعد)</span></p>
+          </div>
+          <div class="chat-actions">
+            <button class="chat-action-btn" onclick="clearChat()" title="مسح المحادثة">🗑️</button>
+            <button class="chat-action-btn" id="ttsBtn" onclick="toggleTTS()" title="قراءة الردود">🔊</button>
+          </div>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <div class="quick-replies" id="quickReplies"></div>
+          <div class="input-row">
+            <button class="chat-btn voice" id="voiceBtn" onclick="toggleVoiceInput()" title="إدخال صوتي">🎤</button>
+            <input type="text" class="chat-input" id="chatInput" placeholder="اكتب رسالتك..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button class="chat-btn send" id="sendBtn" onclick="sendChatMessage()">➤</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Ollama ==================== -->
+  <div class="tab-content" id="tab-ollama">
+    <div class="card">
+      <h2>🔌 تكامل Ollama</h2>
+      <p style="color:#bbb; margin-bottom:15px;">اكتشف النماذج المثبتة على جهازك وتفاعل معها مباشرة.</p>
+      
+      <div style="background:rgba(243,156,18,0.1); border-right:3px solid #f39c12; padding:12px 15px; border-radius:8px; margin-bottom:15px; font-size:0.9em;">
+        ⚠️ <strong>ملاحظة:</strong> Ollama يجب أن يعمل على <code>http://localhost:11434</code>. قد يحتاج متصفحك لإذن CORS.
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="checkOllama()">🔄 فحص Ollama</button>
+        <button class="btn btn-secondary" onclick="listOllamaModels()">📋 عرض النماذج</button>
+      </div>
+
+      <div id="ollamaResults"></div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Benchmark ==================== -->
+  <div class="tab-content" id="tab-benchmark">
+    <div class="card">
+      <h2>⚡ قياس الأداء الحقيقي</h2>
+      <p style="color:#bbb; margin-bottom:15px;">اختبارات فعلية للمعالج وكرت الشاشة والذاكرة.</p>
+      
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="runFullBenchmark()" id="benchmarkBtn">
+          🚀 ابدأ الاختبار الشامل
+        </button>
+      </div>
+
+      <div id="benchmarkResults"></div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: RAG ==================== -->
+  <div class="tab-content" id="tab-rag">
+    <div class="card">
+      <h2>📚 قاعدة المعرفة الشخصية (RAG)</h2>
+      <p style="color:#bbb; margin-bottom:15px;">ارفع مستنداتك ليستخدمها Agent في الإجابات.</p>
+      
+      <div class="rag-upload" onclick="document.getElementById('ragFileInput').click()">
+        <div style="font-size:3em; margin-bottom:10px;">📄</div>
+        <div style="font-size:1.1em; font-weight:bold;">اسحب المستندات هنا أو اضغط للاختيار</div>
+        <div style="font-size:0.85em; color:#999; margin-top:8px;">يدعم: TXT, MD, PDF (نص فقط)</div>
+        <input type="file" id="ragFileInput" style="display:none;" accept=".txt,.md,.pdf,.json" multiple onchange="handleRAGUpload(event)">
+      </div>
+
+      <div class="rag-docs" id="ragDocs"></div>
+
+      <div style="margin-top:20px;">
+        <h3>🔍 استعلام قاعدة المعرفة</h3>
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <input type="text" class="chat-input" id="ragQuery" placeholder="اسأل عن شيء في مستنداتك...">
+          <button class="btn btn-primary" onclick="queryRAG()">🔍 بحث</button>
+        </div>
+        <div id="ragResults" style="margin-top:15px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Vision ==================== -->
+  <div class="tab-content" id="tab-vision">
+    <div class="card">
+      <h2>👁️ تحليل الصور (Vision + OCR)</h2>
+      <p style="color:#bbb; margin-bottom:15px;">ارفع صورة (مثل لقطة من Task Manager) لتحليلها.</p>
+      
+      <div class="rag-upload" onclick="document.getElementById('visionFileInput').click()">
+        <div style="font-size:3em; margin-bottom:10px;">🖼️</div>
+        <div style="font-size:1.1em; font-weight:bold;">ارفع صورة للتحليل</div>
+        <div style="font-size:0.85em; color:#999; margin-top:8px;">اقرأ النص من الصور تلقائياً (OCR)</div>
+        <input type="file" id="visionFileInput" style="display:none;" accept="image/*" onchange="handleVisionUpload(event)">
+      </div>
+
+      <div id="visionResults" style="margin-top:20px;"></div>
+    </div>
+  </div>
+
+  <!-- ==================== Tab: Achievements ==================== -->
+  <div class="tab-content" id="tab-achievements">
+    <div class="card">
+      <h2>🏆 الإنجازات والنقاط</h2>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <span style="font-size:2em; font-weight:bold; background:linear-gradient(90deg,#f39c12,#e74c3c); -webkit-background-clip:text; -webkit-text-fill-color:transparent;" id="totalPoints">0</span>
+          <span style="color:#999;">نقطة</span>
+        </div>
+        <div style="color:#00d4ff;" id="levelText">المستوى: مبتدئ</div>
+      </div>
+      <div class="achievements-grid" id="achievementsGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== Modal: Voice ==================== -->
+<div class="modal-overlay" id="voiceModal">
+  <div class="modal" style="max-width:500px; text-align:center;">
+    <h2>🎤 إدخال صوتي</h2>
+    <div class="voice-visualizer" id="voiceVisualizer">
+      <div class="voice-bar" style="height:20px;"></div>
+      <div class="voice-bar" style="height:30px;"></div>
+      <div class="voice-bar" style="height:40px;"></div>
+      <div class="voice-bar" style="height:50px;"></div>
+      <div class="voice-bar" style="height:40px;"></div>
+      <div class="voice-bar" style="height:30px;"></div>
+      <div class="voice-bar" style="height:20px;"></div>
+    </div>
+    <div class="voice-text" id="voiceText">جاري الاستماع...</div>
+    <button class="btn btn-danger" onclick="stopVoiceInput()" style="margin-top:15px;">⏹️ إيقاف</button>
+  </div>
+</div>
+
+<!-- ==================== Modal: Settings ==================== -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeSettings()">✕</button>
+    <h2>⚙️ الإعدادات</h2>
+    
+    <div style="margin-top:20px;">
+      <h3>🎨 المظهر</h3>
+      <div style="margin:10px 0;">
+        <label>وضع الألوان:</label>
+        <select id="themeSelect" onchange="changeTheme()" style="width:100%; padding:10px; margin-top:8px; border-radius:8px; background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border);">
+          <option value="dark">داكن (افتراضي)</option>
+          <option value="neon">نيون</option>
+          <option value="ocean">محيطي</option>
+          <option value="sunset">غروب</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3>🔊 الصوت</h3>
+      <div style="margin:10px 0;">
+        <label><input type="checkbox" id="ttsEnabled" checked onchange="saveSettings()"> قراءة ردود Agent تلقائياً</label>
+      </div>
+      <div style="margin:10px 0;">
+        <label>سرعة القراءة:</label>
+        <input type="range" id="ttsSpeed" min="0.5" max="2" step="0.1" value="1" style="width:100%;" onchange="saveSettings()">
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3>🧠 الذكاء</h3>
+      <div style="margin:10px 0;">
+        <label>محرك الدردشة:</label>
+        <select id="engineSelect" onchange="saveSettings()" style="width:100%; padding:10px; margin-top:8px; border-radius:8px; background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border);">
+          <option value="rules">القواعد الذكية (سريع)</option>
+          <option value="webllm">WebLLM (ذكاء حقيقي)</option>
+          <option value="ollama">Ollama (إذا متوفر)</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3>💾 البيانات</h3>
+      <div class="btn-group">
+        <button class="btn btn-secondary" onclick="exportAllData()">📤 تصدير البيانات</button>
+        <button class="btn btn-danger" onclick="clearAllData()">🗑️ حذف كل البيانات</button>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <h3>ℹ️ معلومات</h3>
+      <p style="color:#999; font-size:0.9em;">الإصدار: 3.0 Ultra</p>
+      <p style="color:#999; font-size:0.9em;">آخر تحديث: 2025</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
