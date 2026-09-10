@@ -1,7 +1,7 @@
 {
-  "name": "AI Advisor Ultra 5",
-  "short_name": "AI Advisor 5",
-  "description": "Cognitive local AI advisor with context memory and automatic engine routing",
+  "name": "AI Advisor Ultra 5.1",
+  "short_name": "AI Advisor 5.1",
+  "description": "Cognitive local AI advisor with Ollama Local AI Bridge, model selection, RAG and context memory",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",

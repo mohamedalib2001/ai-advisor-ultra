@@ -23,3 +23,12 @@
 - Automatic RAG retrieval in chat
 - Ollama /api/chat with history + device context + RAG
 - Longer WebLLM context and stronger system prompt
+
+
+## v5.1 Local AI Bridge
+- Ollama endpoint fallback: localhost + 127.0.0.1
+- Detect installed models and prefer qwen3:4b-instruct-2507-q4_K_M
+- Persist selected Ollama model
+- Better browser/local-network diagnostics
+- API timeout, think:false, output limits, and hidden think-tag cleanup
+- Cache bumped to v5.1

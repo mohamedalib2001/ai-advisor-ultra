@@ -393,95 +393,125 @@ async function chatWithWebLLM(messages) {
   return response.choices[0].message.content;
 }
 
-// ==================== Ollama Integration ====================
-async function checkOllama() {
-  const statusEl = document.getElementById('ollamaStatus');
-  try {
-    const res = await fetch('http://localhost:11434/api/tags', {
-      method: 'GET',
-      mode: 'cors'
-    });
-    if (res.ok) {
-      statusEl.className = 'status-badge status-online';
-      statusEl.innerHTML = '<span class="status-dot"></span> Ollama: متصل';
-      return true;
+// ==================== Ollama Integration v5.1 ====================
+const OLLAMA_ENDPOINTS = ['http://localhost:11434', 'http://127.0.0.1:11434'];
+let ollamaState = { baseUrl: null, models: [], selectedModel: null, lastError: null };
+
+function chooseOllamaModel(models = []) {
+  if (!models.length) return null;
+  const saved = localStorage.getItem('ollamaSelectedModel');
+  if (saved && models.some(m => m.name === saved)) return saved;
+  const preferredExact = 'qwen3:4b-instruct-2507-q4_K_M';
+  if (models.some(m => m.name === preferredExact)) return preferredExact;
+  const instruct = models.find(m => /instruct/i.test(m.name));
+  return (instruct || models[0]).name;
+}
+
+async function ollamaFetch(path, options = {}, timeoutMs = 8000) {
+  const endpoints = ollamaState.baseUrl ? [ollamaState.baseUrl, ...OLLAMA_ENDPOINTS.filter(x => x !== ollamaState.baseUrl)] : OLLAMA_ENDPOINTS;
+  let lastErr;
+  for (const base of endpoints) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(base + path, { ...options, mode: 'cors', cache: 'no-store', signal: controller.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      ollamaState.baseUrl = base;
+      ollamaState.lastError = null;
+      return res;
+    } catch (e) {
+      clearTimeout(timer); lastErr = e;
     }
+  }
+  ollamaState.lastError = lastErr;
+  throw lastErr || new Error('تعذر الوصول إلى Ollama');
+}
+
+function ollamaDiagnosticHTML(error) {
+  const secure = location.protocol === 'https:';
+  const err = escapeHTML(error?.message || String(error || 'فشل الاتصال'));
+  return `<div style="background:rgba(231,76,60,.1);padding:18px;border-radius:12px;border:1px solid rgba(231,76,60,.35)">
+    <h3 style="color:#ff7675;margin-top:0">تعذر وصول المتصفح إلى Ollama</h3>
+    <p style="color:#ddd">Ollama قد يكون يعمل على الجهاز، لكن الصفحة لم تستطع الوصول إلى API المحلي.</p>
+    <p style="color:#aaa;font-size:.9em">التشخيص: ${err}</p>
+    ${secure ? '<p style="color:#f9ca24;font-size:.9em">الموقع يعمل عبر HTTPS. إذا ظهر في Chrome طلب إذن للوصول إلى الشبكة المحلية فاختر <strong>سماح</strong>.</p>' : ''}
+    <p style="color:#aaa;font-size:.9em">تمت تجربة localhost و 127.0.0.1 تلقائياً.</p>
+  </div>`;
+}
+
+async function checkOllama(showDetails = false) {
+  const statusEl = document.getElementById('ollamaStatus');
+  const container = document.getElementById('ollamaResults');
+  if (statusEl) { statusEl.className = 'status-badge status-loading'; statusEl.innerHTML = '<span class="status-dot"></span> Ollama: جاري الفحص'; }
+  try {
+    const res = await ollamaFetch('/api/tags');
+    const data = await res.json();
+    ollamaState.models = data.models || [];
+    ollamaState.selectedModel = chooseOllamaModel(ollamaState.models);
+    if (ollamaState.selectedModel) localStorage.setItem('ollamaSelectedModel', ollamaState.selectedModel);
+    if (statusEl) {
+      statusEl.className = 'status-badge status-online';
+      statusEl.innerHTML = `<span class="status-dot"></span> Ollama: متصل${ollamaState.selectedModel ? ' • ' + escapeHTML(ollamaState.selectedModel) : ''}`;
+    }
+    if (showDetails && container) renderOllamaModels();
+    return true;
   } catch(e) {
-    statusEl.className = 'status-badge status-offline';
-    statusEl.innerHTML = '<span class="status-dot"></span> Ollama: غير متصل';
+    if (statusEl) { statusEl.className = 'status-badge status-offline'; statusEl.innerHTML = '<span class="status-dot"></span> Ollama: تعذر وصول المتصفح'; }
+    if (showDetails && container) container.innerHTML = ollamaDiagnosticHTML(e);
     return false;
   }
-  return false;
+}
+
+function renderOllamaModels() {
+  const container = document.getElementById('ollamaResults');
+  const models = ollamaState.models || [];
+  if (!models.length) {
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:#f39c12">Ollama متصل، لكن لا توجد نماذج مثبتة.</div>';
+    return;
+  }
+  container.innerHTML = `<h3 style="color:#00d4ff;margin-bottom:15px">النماذج المثبتة (${models.length})</h3>
+    <p style="color:#2ecc71;margin-bottom:15px">المحرك المحلي: ${escapeHTML(ollamaState.baseUrl || '')} — النموذج النشط: <strong>${escapeHTML(ollamaState.selectedModel || '')}</strong></p>
+    <div class="ollama-models">${models.map(m => `<div class="ollama-model">
+      <h4 style="color:#fff">${escapeHTML(m.name)}</h4>
+      <p style="color:#999;font-size:.85em;margin:8px 0">الحجم: ${(Number(m.size || 0)/1024**3).toFixed(2)} GB</p>
+      <button class="btn ${m.name===ollamaState.selectedModel?'btn-success':'btn-secondary'}" style="padding:8px 14px;font-size:.82em" onclick="selectOllamaModel('${String(m.name).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">${m.name===ollamaState.selectedModel?'النموذج النشط':'استخدام هذا النموذج'}</button>
+      <button class="btn btn-primary" style="padding:8px 14px;font-size:.82em;margin-top:8px" onclick="testOllamaModel('${String(m.name).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}')">اختبار</button>
+    </div>`).join('')}</div>`;
+}
+
+function selectOllamaModel(name) {
+  if (!ollamaState.models.some(m => m.name === name)) return;
+  ollamaState.selectedModel = name;
+  localStorage.setItem('ollamaSelectedModel', name);
+  renderOllamaModels();
+  checkOllama(false);
+  showToast(`تم اعتماد ${name}`);
 }
 
 async function listOllamaModels() {
   const container = document.getElementById('ollamaResults');
-  container.innerHTML = '<div class="spinner" style="margin:20px auto;"></div>';
-  
-  try {
-    const res = await fetch('http://localhost:11434/api/tags');
-    const data = await res.json();
-    
-    if (!data.models || data.models.length === 0) {
-      container.innerHTML = `
-        <div style="background:rgba(243,156,18,0.1); padding:20px; border-radius:12px; text-align:center;">
-          <p style="font-size:1.1em;">📭 لا توجد نماذج مثبتة بعد</p>
-          <p style="color:#999; margin-top:10px;">ثبّت نموذجاً عبر: <code style="background:rgba(0,0,0,0.4); padding:4px 8px; border-radius:6px; color:#2ecc71;">ollama pull llama3.2</code></p>
-        </div>
-      `;
-      return;
-    }
-    
-    container.innerHTML = `
-      <h3 style="color:#00d4ff; margin-bottom:15px;">📋 النماذج المثبتة (${data.models.length})</h3>
-      <div class="ollama-models">
-        ${data.models.map(m => `
-          <div class="ollama-model">
-            <h4 style="color:#fff;">${m.name}</h4>
-            <p style="color:#999; font-size:0.85em; margin:8px 0;">الحجم: ${(m.size / 1024**3).toFixed(2)} GB</p>
-            <p style="color:#999; font-size:0.85em;">التعديل: ${new Date(m.modified_at).toLocaleDateString('ar-SA')}</p>
-            <button class="btn btn-primary" style="padding:8px 16px; font-size:0.85em; margin-top:10px;" onclick="testOllamaModel('${m.name}')">
-              🚀 اختبار
-            </button>
-          </div>
-        `).join('')}
-      </div>
-    `;
-    unlockAchievement('ollama_connected');
-    addPoints(30);
-  } catch(e) {
-    container.innerHTML = `
-      <div style="background:rgba(231,76,60,0.1); padding:20px; border-radius:12px;">
-        <p style="color:#e74c3c;">❌ فشل الاتصال بـ Ollama</p>
-        <p style="color:#999; margin-top:10px; font-size:0.9em;">تأكد من:</p>
-        <ul style="padding-right:20px; color:#999; font-size:0.9em;">
-          <li>تشغيل Ollama على جهازك (ollama serve)</li>
-          <li>السماح بـ CORS إذا لزم الأمر</li>
-          <li>عدم حجب المنفذ 11434</li>
-        </ul>
-      </div>
-    `;
-  }
+  container.innerHTML = '<div class="spinner" style="margin:20px auto"></div>';
+  const ok = await checkOllama(true);
+  if (ok) { unlockAchievement('ollama_connected'); addPoints(30); }
 }
 
 async function testOllamaModel(name) {
-  showToast(`🧪 اختبار ${name}...`);
+  showToast(`اختبار ${name}...`);
   try {
     const start = Date.now();
-    const res = await fetch('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: name,
-        prompt: 'قل مرحبا فقط',
-        stream: false
-      })
-    });
+    const res = await ollamaFetch('/api/chat', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model:name, messages:[{role:'user',content:'قل مرحبا بالعربية في سطر واحد فقط'}], stream:false, think:false, options:{temperature:.2,num_predict:80} })
+    }, 60000);
     const data = await res.json();
-    const time = ((Date.now() - start) / 1000).toFixed(2);
-    showToast(`✅ ${name} — ${time}s`);
+    const time = ((Date.now()-start)/1000).toFixed(2);
+    showToast(`نجح ${name} — ${time}s`);
+    const c=document.getElementById('ollamaResults');
+    if(c) c.insertAdjacentHTML('afterbegin', `<div style="background:rgba(39,174,96,.12);padding:12px;border-radius:10px;margin-bottom:12px;color:#ddd"><strong>رد الاختبار:</strong> ${formatSafeRichText(data.message?.content || 'تم الاتصال بنجاح')}</div>`);
   } catch(e) {
-    showToast(`❌ فشل اختبار ${name}`);
+    showToast('فشل اختبار النموذج');
+    const c=document.getElementById('ollamaResults'); if(c) c.innerHTML=ollamaDiagnosticHTML(e);
   }
 }
 
@@ -1202,7 +1232,7 @@ function cognitiveFallback(text, ctx){
 async function resolveBestEngine(){
   if(settings.engine && settings.engine!=='auto' && settings.engine!=='rules') return settings.engine;
   if(agentEngine) return 'webllm';
-  try { const r=await fetch('http://localhost:11434/api/tags'); if(r.ok) return 'ollama'; } catch(e){}
+  try { if(await checkOllama(false)) return 'ollama'; } catch(e){}
   return 'cognitive';
 }
 
@@ -1238,19 +1268,19 @@ async function buildWebLLMMessages(userText, ctx=null) {
 
 async function chatWithOllama(text, ctx=null) {
   ctx=ctx||await buildCognitiveContext(text);
-  try{
-    const tags=await fetch('http://localhost:11434/api/tags');
-    if(!tags.ok) throw new Error('Ollama غير متصل');
-    const td=await tags.json();
-    if(!td.models?.length) return 'Ollama متصل، لكن لا يوجد نموذج مثبت. ثبّت نموذجاً أولاً ثم أعد المحاولة.';
-    const modelName=td.models[0].name;
+  try {
+    if (!ollamaState.models.length) await checkOllama(false);
+    if (!ollamaState.models.length) throw new Error('لا توجد نماذج Ollama متاحة');
+    const modelName = ollamaState.selectedModel || chooseOllamaModel(ollamaState.models);
     const ragText=ctx.rag.map(r=>`[${r.doc}#${r.chunk}] ${r.text}`).join('\n\n');
-    const system=`أنت AI Advisor Ultra v5 Cognitive. افهم المقصد والمتابعات، واستخدم سياق الجهاز والمستندات. لا تخترع معلومات. الجهاز: ${ctx.device}${ragText?`\nمقاطع من قاعدة المعرفة:\n${ragText}`:''}`;
+    const system=`أنت AI Advisor Ultra v5.1 Cognitive. أجب بالعربية الطبيعية مباشرة دون إظهار خطوات التفكير الداخلية. افهم المقصد والمتابعات، واستخدم سياق الجهاز والمستندات عند الحاجة. لا تخترع معلومات. الجهاز: ${ctx.device}${ragText?`\nمقاطع من قاعدة المعرفة:\n${ragText}`:''}`;
     const messages=[{role:'system',content:system},...ctx.history.slice(-16).map(h=>({role:h.type==='user'?'user':'assistant',content:h.text})),{role:'user',content:text}];
-    const res=await fetch('http://localhost:11434/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelName,messages,stream:false,options:{temperature:.55}})});
-    if(!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
-    const data=await res.json(); return data.message?.content||'لم يصل رد من النموذج.';
-  }catch(e){ return `تعذر استخدام Ollama الآن (${e.message}). استخدم الوضع التلقائي أو WebLLM.`; }
+    const res=await ollamaFetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelName,messages,stream:false,think:false,options:{temperature:.45,num_predict:700}})},90000);
+    const data=await res.json();
+    let content=data.message?.content||'لم يصل رد من النموذج.';
+    content=content.replace(/<think>[\s\S]*?<\/think>/gi,'').trim();
+    return content || 'تمت المعالجة لكن لم يصل نص نهائي من النموذج.';
+  } catch(e) { throw new Error(`Ollama: ${e.message}`); }
 }
 
 function addChatMessage(type, text) {

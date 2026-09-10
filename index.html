@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0f0c29">
 <meta name="description" content="AI Advisor Ultra 4 - منصة ذكية لتحليل الأجهزة وتشغيل الذكاء الاصطناعي المحلي">
-<title>AI Advisor Ultra 5 — Cognitive Agent Core</title>
+<title>AI Advisor Ultra 5.1 — Local AI Bridge</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -928,11 +928,11 @@ header p { color: #aaa; font-size: 1em; position: relative; }
       <p style="color:#bbb; margin-bottom:15px;">اكتشف النماذج المثبتة على جهازك وتفاعل معها مباشرة.</p>
       
       <div style="background:rgba(243,156,18,0.1); border-right:3px solid #f39c12; padding:12px 15px; border-radius:8px; margin-bottom:15px; font-size:0.9em;">
-        ⚠️ <strong>ملاحظة:</strong> Ollama يجب أن يعمل على <code>http://localhost:11434</code>. قد يحتاج متصفحك لإذن CORS.
+        <strong>Local AI Bridge v5.1:</strong> يفحص localhost و 127.0.0.1 تلقائياً ويكتشف النموذج المثبت. إذا طلب Chrome إذن الوصول إلى الشبكة المحلية اختر سماح.
       </div>
 
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="checkOllama()">🔄 فحص Ollama</button>
+        <button class="btn btn-primary" onclick="checkOllama(true)">🔄 فحص Ollama</button>
         <button class="btn btn-secondary" onclick="listOllamaModels()">📋 عرض النماذج</button>
       </div>
 
