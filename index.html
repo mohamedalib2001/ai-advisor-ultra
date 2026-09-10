@@ -17,14 +17,22 @@
 <!-- Tesseract.js for OCR -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.0/dist/tesseract.min.js"></script>
 
-<!-- WebLLM (يُحمّل عند الحاجة فقط) -->
-<script type="module" id="webllm-loader">
+<!-- WebLLM من CDN موثوق -->
+<script type="module">
   window.loadWebLLM = async function() {
     if (window._webllmLoaded) return window._webllmModule;
-    const module = await import('https://esm.run/@mlc-ai/web-llm@0.2.71');
-    window._webllmModule = module;
-    window._webllmLoaded = true;
-    return module;
+    try {
+      console.log('🔄 جاري تحميل WebLLM...');
+      const module = await import('https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.71/+esm');
+      console.log('✅ تم تحميل WebLLM بنجاح');
+      window._webllmModule = module;
+      window._webllmLoaded = true;
+      return module;
+    } catch(err) {
+      console.error('❌ فشل تحميل WebLLM:', err);
+      alert('فشل تحميل مكتبة WebLLM.\n\nتحقق من:\n1. اتصال الإنترنت\n2. استخدام متصفح Chrome/Edge حديث\n3. تعطيل مانع الإعلانات مؤقتاً');
+      throw err;
+    }
   };
 </script>
 
