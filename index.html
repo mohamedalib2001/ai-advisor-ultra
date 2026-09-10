@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0f0c29">
-<meta name="description" content="AI Advisor Ultra 4 - منصة ذكية لتحليل الأجهزة وتشغيل الذكاء الاصطناعي المحلي">
-<title>AI Advisor Ultra 5.1 — Local AI Bridge</title>
+<meta name="description" content="AI Advisor Ultra 6 — فحص عميق للجهاز، اكتشاف نماذج الذكاء الاصطناعي المثبّتة محلياً، ومستشار ترقية لكل نموذج">
+<title>AI Advisor Ultra 6.5 — فحص الجهاز والنماذج المحلية والأدوات الذكية</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -785,8 +785,8 @@ header p { color: #aaa; font-size: 1em; position: relative; }
 <div class="container">
   <!-- ==================== Header ==================== -->
   <header>
-    <h1>AI Advisor Ultra <span style="font-size:.45em;vertical-align:middle;opacity:.75">v5</span></h1>
-    <p>Cognitive Agent Core • Context Memory • Auto Router • RAG • WebLLM • Ollama</p>
+    <h1>AI Advisor Ultra <span style="font-size:.45em;vertical-align:middle;opacity:.75">v6.5</span></h1>
+    <p>فحص عميق للجهاز • اكتشاف النماذج المثبّتة • مستشار ترقية • عشر أدوات ذكية • Ollama • WebLLM</p>
     <div class="status-badges">
       <span class="status-badge status-loading" id="webgpuStatus">
         <span class="status-dot"></span> WebGPU: جاري الفحص
@@ -1086,8 +1086,8 @@ header p { color: #aaa; font-size: 1em; position: relative; }
 
     <div style="margin-top:20px;">
       <h3>ℹ️ معلومات</h3>
-      <p style="color:#999; font-size:0.9em;">الإصدار: 5.0 Cognitive</p>
-      <p style="color:#999; font-size:0.9em;">آخر تحديث: سبتمبر 2026 — Cognitive Core</p>
+      <p style="color:#999; font-size:0.9em;">الإصدار: 6.5 Smart Tools</p>
+      <p style="color:#999; font-size:0.9em;">آخر تحديث: سبتمبر 2026 — فحص الجهاز + اكتشاف النماذج + مستشار الترقية</p>
     </div>
   </div>
 </div>
@@ -1095,6 +1095,8 @@ header p { color: #aaa; font-size: 1em; position: relative; }
 <div class="toast" id="toast"></div>
 
 <script src="app.js"></script>
+<script src="ultra.js"></script>
+<script src="ultra-tools.js"></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
