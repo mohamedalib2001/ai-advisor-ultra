@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#0f0c29">
-<meta name="description" content="AI Advisor Ultra - Agent ذكي كامل بمعايير 2025">
-<title>🚀 AI Advisor Ultra - النسخة الخارقة</title>
+<meta name="description" content="AI Advisor Ultra 4 - منصة ذكية لتحليل الأجهزة وتشغيل الذكاء الاصطناعي المحلي">
+<title>AI Advisor Ultra 5 — Cognitive Agent Core</title>
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
@@ -767,14 +767,26 @@ header p { color: #aaa; font-size: 1em; position: relative; }
   background: linear-gradient(#7b2ff7, #00d4ff);
   border-radius: 5px;
 }
+
+/* ==================== v4 Neural Intelligence ==================== */
+:root{--glass-strong:rgba(11,15,35,.78);--glow:0 18px 60px rgba(0,212,255,.12)}
+.neural-hero{display:flex;align-items:center;justify-content:space-between;gap:24px;background:linear-gradient(120deg,rgba(123,47,247,.18),rgba(0,212,255,.08));box-shadow:var(--glow)}
+.neural-hero p{color:#aeb9c9;max-width:760px}.eyebrow{font-size:.72rem;letter-spacing:.22em;color:#77eaff;margin-bottom:8px}
+.smart-empty{text-align:center;padding:56px 20px;color:#98a7ba}.smart-orb{width:82px;height:82px;margin:0 auto 18px;border-radius:28px;display:grid;place-items:center;font-weight:800;font-size:1.25rem;background:linear-gradient(135deg,rgba(123,47,247,.75),rgba(0,212,255,.75));box-shadow:0 0 45px rgba(0,212,255,.22)}
+.smart-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.smart-card{grid-column:span 4;background:var(--glass-strong);border:1px solid rgba(255,255,255,.09);border-radius:18px;padding:20px;box-shadow:var(--glow)}
+.smart-card.wide{grid-column:span 8}.smart-card.full{grid-column:1/-1}.smart-card h3{margin:0 0 8px;color:#fff}.smart-kicker{font-size:.75rem;color:#79e9ff;text-transform:uppercase;letter-spacing:.08em}.smart-score{font-size:2.2rem;font-weight:800;margin:12px 0;background:linear-gradient(90deg,#fff,#75e9ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.smart-muted{color:#8fa0b4;font-size:.9rem}.smart-meter{height:8px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;margin-top:12px}.smart-meter>i{display:block;height:100%;background:linear-gradient(90deg,#7b2ff7,#00d4ff);border-radius:999px}.decision-list{display:grid;gap:10px;margin-top:14px}.decision{padding:12px 14px;border-radius:12px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}.decision strong{color:#eafcff}.decision small{display:block;color:#8ea0b6;margin-top:3px}.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.smart-chip{padding:7px 10px;border-radius:999px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.18);font-size:.78rem;color:#aef4ff}.action-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.mini-action{border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:#eaf7ff;border-radius:10px;padding:9px 12px;cursor:pointer}.mini-action:hover{border-color:#00d4ff;background:rgba(0,212,255,.08)}
+@media(max-width:900px){.smart-card,.smart-card.wide{grid-column:span 6}.neural-hero{align-items:flex-start;flex-direction:column}}
+@media(max-width:768px){body{padding:10px}.container{width:100%}header{padding:22px 14px}.main-tabs{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x proximity;padding:8px;position:sticky;top:0;z-index:50;background:rgba(15,12,41,.92)}.main-tab{flex:0 0 auto;scroll-snap-align:start;white-space:nowrap}.card{padding:17px}.chat-container{height:min(68vh,620px)}.input-row{align-items:flex-end}.chat-input{min-width:0}.smart-grid{display:block}.smart-card,.smart-card.wide,.smart-card.full{margin-bottom:12px}.charts-grid{grid-template-columns:minmax(0,1fr)}.chart-box{height:280px}.modal{padding:20px 16px}.btn-group .btn{flex:1 1 150px}}
+@media(max-width:420px){header h1{font-size:1.35rem}.status-badges{justify-content:flex-start}.status-badge{font-size:.72rem}.message{max-width:94%}.chat-btn{width:40px;height:40px;flex:0 0 40px}.quick-replies{flex-wrap:nowrap;overflow-x:auto}.quick-reply{flex:0 0 auto}.neural-hero .btn{width:100%}}
+
 </style>
 </head>
 <body>
 <div class="container">
   <!-- ==================== Header ==================== -->
   <header>
-    <h1>🚀 AI Advisor Ultra</h1>
-    <p>Agent ذكي كامل • WebLLM • Voice • Vision • Ollama • RAG • Multi-Agent</p>
+    <h1>AI Advisor Ultra <span style="font-size:.45em;vertical-align:middle;opacity:.75">v5</span></h1>
+    <p>Cognitive Agent Core • Context Memory • Auto Router • RAG • WebLLM • Ollama</p>
     <div class="status-badges">
       <span class="status-badge status-loading" id="webgpuStatus">
         <span class="status-dot"></span> WebGPU: جاري الفحص
@@ -795,6 +807,9 @@ header p { color: #aaa; font-size: 1em; position: relative; }
   <div class="main-tabs">
     <button class="main-tab active" onclick="switchMainTab(event, 'analyze')">
       📊 <span>التحليل</span>
+    </button>
+    <button class="main-tab" onclick="switchMainTab(event, 'intelligence'); renderIntelligenceHub()">
+      ◈ <span>المركز الذكي</span>
     </button>
     <button class="main-tab" onclick="switchMainTab(event, 'chat')">
       🤖 <span>الدردشة الذكية</span>
@@ -839,6 +854,25 @@ header p { color: #aaa; font-size: 1em; position: relative; }
       <div class="loading-step" id="loadingStep">بدء الفحص...</div>
     </div>
     <div id="results"></div>
+  </div>
+
+  <!-- ==================== Tab: Intelligence Hub ==================== -->
+  <div class="tab-content" id="tab-intelligence">
+    <div class="card neural-hero">
+      <div>
+        <div class="eyebrow">AI DEVICE INTELLIGENCE</div>
+        <h2>◈ مركز القرار الذكي</h2>
+        <p>حوّل مواصفات جهازك إلى قرارات عملية: ماذا تشغّل محلياً؟ ما النموذج الأنسب؟ أين الاختناق؟ وهل تحتاج ترقية فعلاً؟</p>
+      </div>
+      <button class="btn btn-primary" onclick="smartAnalyzeNow()">تشغيل التحليل الذكي</button>
+    </div>
+    <div id="intelligenceHub">
+      <div class="smart-empty">
+        <div class="smart-orb">AI</div>
+        <h3>المركز الذكي جاهز</h3>
+        <p>نفّذ تحليل الجهاز أولاً للحصول على خريطة جاهزية محلية وتوصيات مخصصة.</p>
+      </div>
+    </div>
   </div>
 
   <!-- ==================== Tab: Chat ==================== -->
@@ -1034,7 +1068,8 @@ header p { color: #aaa; font-size: 1em; position: relative; }
       <div style="margin:10px 0;">
         <label>محرك الدردشة:</label>
         <select id="engineSelect" onchange="saveSettings()" style="width:100%; padding:10px; margin-top:8px; border-radius:8px; background:rgba(0,0,0,0.3); color:white; border:1px solid var(--border);">
-          <option value="rules">القواعد الذكية (سريع)</option>
+          <option value="auto">تلقائي ذكي — موصى به</option>
+          <option value="rules">Cognitive محلي — بدون نموذج</option>
           <option value="webllm">WebLLM (ذكاء حقيقي)</option>
           <option value="ollama">Ollama (إذا متوفر)</option>
         </select>
@@ -1051,8 +1086,8 @@ header p { color: #aaa; font-size: 1em; position: relative; }
 
     <div style="margin-top:20px;">
       <h3>ℹ️ معلومات</h3>
-      <p style="color:#999; font-size:0.9em;">الإصدار: 3.0 Ultra</p>
-      <p style="color:#999; font-size:0.9em;">آخر تحديث: 2025</p>
+      <p style="color:#999; font-size:0.9em;">الإصدار: 5.0 Cognitive</p>
+      <p style="color:#999; font-size:0.9em;">آخر تحديث: سبتمبر 2026 — Cognitive Core</p>
     </div>
   </div>
 </div>

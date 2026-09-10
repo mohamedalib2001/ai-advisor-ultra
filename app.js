@@ -12,7 +12,7 @@ let settings = {
   theme: 'dark',
   ttsEnabled: true,
   ttsSpeed: 1,
-  engine: 'rules'
+  engine: 'auto'
 };
 let gamification = {
   points: 0,
@@ -998,170 +998,266 @@ function renderAchievements() {
   updatePointsDisplay();
 }
 
-// ==================== Agent Brain (Rules) ====================
-const AgentBrain = {
-  patterns: [
-    {
-      keywords: ['مرحبا', 'السلام', 'أهلا', 'هاي', 'hi', 'hello'],
-      handler: () => `أهلاً بك! 👋\n\nأنا **Agent Ultra** — نسختي الخارقة!\n\n✨ قدراتي:\n• 🧠 WebLLM (ذكاء حقيقي في المتصفح)\n• 🎤 إدخال صوتي\n• 👁️ تحليل الصور\n• 🔌 تكامل Ollama\n• 📚 قاعدة معرفة RAG\n• ⚡ قياس أداء حقيقي\n\n${agentContext.hasAnalyzed ? `📊 جهازك: **${systemData.perf.score}/100** (${systemData.perf.tierLabel})` : '💡 اضغط "ابدأ التحليل" أولاً!'}`
-    },
-    {
-      keywords: ['أفضل نموذج', 'افضل نموذج', 'أنصحني', 'انصحني'],
-      handler: () => {
-        if (!agentContext.hasAnalyzed) return '🔍 حلل جهازك أولاً!';
-        const models = AI_MODELS.free[systemData.perf.tier];
-        const top = models[0];
-        return `🏆 **أفضل نموذج لجهازك:**\n\n**${top.name}** (${top.dev})\n\n📦 ${top.size} | 💾 ${top.ram} | 🎮 ${top.vram}\n\n⚡ ${top.impact}\n\n🔗 ${top.link}`;
-      }
-    },
-    {
-      keywords: ['برمجة', 'كود', 'أكواد', 'code'],
-      handler: () => {
-        if (!agentContext.hasAnalyzed) return '🔍 حلل جهازك أولاً!';
-        const m = AI_MODELS.free[systemData.perf.tier].find(x => x.category === 'code') || AI_MODELS.free.good.find(x => x.category === 'code');
-        return `💻 **للبرمجة:**\n\n**${m.name}** (${m.dev})\n${m.desc}\n\n📦 ${m.size} | 💾 ${m.ram}\n\n🔗 ${m.link}\n\n💡 **بديل مدفوع:** GitHub Copilot ($10/شهر)`;
-      }
-    },
-    {
-      keywords: ['عربي', 'عربية', 'arabic'],
-      handler: () => `🌍 **للعربية:**\n\n🥇 **Qwen2.5** — الأفضل عربياً\n• 1.5B / 3B / 7B / 14B / 32B\n\n🔗 https://ollama.com/library/qwen2.5`
-    },
-    {
-      keywords: ['صور', 'image', 'midjourney', 'توليد'],
-      handler: () => {
-        if (!agentContext.hasAnalyzed) return '🔍 حلل جهازك أولاً!';
-        const vram = systemData.info.gpuMemoryEstimate;
-        if (vram >= 8) return `🎨 **توليد الصور محلياً ممكن!**\n\n✅ Stable Diffusion XL (يحتاج 8GB VRAM)\n\n💎 **الأفضل:**\n• Midjourney ($10/شهر)\n• Leonardo AI (مجاني)\n\n🔗 https://www.midjourney.com/plans`;
-        return `🎨 **كرتك (${vram}GB VRAM) محدود:**\n\n💎 **استخدم السحابة:**\n• Midjourney ($10/شهر)\n• Leonardo AI (مجاني)\n• Bing Image Creator (مجاني)`;
-      }
-    },
-    {
-      keywords: ['تثبيت', 'كيف اثبت', 'install'],
-      handler: () => `📥 **تثبيت Ollama:**\n\n1. حمّل من https://ollama.com/download\n2. افتح Terminal\n3. \`ollama run llama3.2\`\n4. ابدأ الدردشة!\n\n**بديل:** LM Studio من https://lmstudio.ai`
-    },
-    {
-      keywords: ['مقارنة', 'قارن', 'الفرق'],
-      handler: () => `⚖️ **مقارنة سريعة:**\n\n🌍 **عربي:** Qwen > Llama > Mistral\n🧠 **استدلال:** DeepSeek-R1 > Phi-3\n💻 **كود:** CodeLlama > DeepSeek Coder\n⚡ **سرعة:** Qwen 1.5B > Llama 1B`
-    },
-    {
-      keywords: ['مساعدة', 'help', 'قدراتك'],
-      handler: () => `🤖 **قدراتي الكاملة:**\n\n1️⃣ تحليل جهازك\n2️⃣ دردشة ذكية (WebLLM)\n3️⃣ إدخال صوتي\n4️⃣ تحليل صور (OCR)\n5️⃣ تكامل Ollama\n6️⃣ قاعدة معرفة RAG\n7️⃣ قياس أداء\n8️⃣ مقارنة نماذج\n\n💡 جرب: "ما أفضل نموذج لي؟"`
-    },
-    {
-      keywords: ['شكرا', 'thanks'],
-      handler: () => 'العفو! 😊 جاهز للمزيد!'
-    }
-  ],
-  
-  respond(q) {
-    const query = q.toLowerCase().trim();
-    for (const p of this.patterns) {
-      for (const kw of p.keywords) {
-        if (query.includes(kw.toLowerCase())) return p.handler();
-      }
-    }
-    return `🤔 لم أفهم تماماً. جرب:\n• "ما أفضل نموذج لي؟"\n• "أريد نموذج للبرمجة"\n• "كيف أثبت Ollama؟"\n• "مساعدة"`;
-  }
+
+// ==================== v4 Neural Intelligence Layer ====================
+function escapeHTML(value='') {
+  return String(value).replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+}
+
+function formatSafeRichText(text='') {
+  return escapeHTML(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/`(.+?)`/g, '<code style="background:rgba(0,0,0,.4);padding:2px 6px;border-radius:4px;color:#2ecc71">$1</code>')
+    .replace(/\n/g, '<br>');
+}
+
+function estimateLocalAIReadiness(info, perf) {
+  const ram = Number(info.memory || 4), vram = Number(info.gpuMemoryEstimate || 0), cores = Number(info.cores || 2);
+  const webgpu = info.webgpuSupported ? 12 : 0;
+  const score = Math.max(0, Math.min(100, Math.round(ram*1.5 + vram*3.2 + Math.min(cores,16)*1.4 + webgpu)));
+  let className='أساسي', maxModel='1B–3B', quant='Q4';
+  if(score>=82){className='احترافي';maxModel='14B–32B';quant='Q4/Q5';}
+  else if(score>=65){className='قوي';maxModel='7B–14B';quant='Q4';}
+  else if(score>=45){className='متوازن';maxModel='3B–7B';quant='Q4';}
+  return {score,className,maxModel,quant};
+}
+
+function buildSmartDecisions(info, perf) {
+  const ram=Number(info.memory||4), vram=Number(info.gpuMemoryEstimate||0), cores=Number(info.cores||2);
+  const decisions=[];
+  if(!info.webgpuSupported) decisions.push(['استخدم Ollama أو السحابة','WebGPU غير متاح، لذلك تشغيل WebLLM داخل المتصفح سيكون محدوداً.']);
+  else decisions.push(['WebLLM جاهز للتجربة','المتصفح يدعم WebGPU ويمكن تشغيل نموذج محلي مناسب مباشرة.']);
+  if(ram<8) decisions.push(['لا تبدأ بنموذج كبير','الذاكرة المتاحة منخفضة؛ ابدأ بفئة 1B–3B أو استخدم نموذجاً سحابياً.']);
+  else if(ram<16) decisions.push(['أفضل توازن: 3B–7B','هذه الفئة عادةً تمنحك استجابة جيدة بدون ضغط مبالغ على الذاكرة.']);
+  else decisions.push(['ذاكرة مناسبة للنماذج المحلية','يمكنك اختبار نماذج أكبر مع مراقبة استهلاك RAM وسرعة التوليد.']);
+  if(vram<4) decisions.push(['GPU ليس محور التشغيل','اعتمد أكثر على CPU/RAM أو الاستدلال السحابي.']);
+  else if(vram>=8) decisions.push(['جاهزية جيدة للتسريع الرسومي','يمكن الاستفادة من GPU في الاستدلال وبعض مهام الصور محلياً.']);
+  if(cores<6) decisions.push(['فعّل وضع السرعة','المعالج محدود نسبياً؛ استخدم quantization أصغر وسياقاً أقصر.']);
+  return decisions;
+}
+
+function getBottleneck(info, perf){
+  const b=perf.breakdown||{}; const labels={cpu:'المعالج',memory:'الذاكرة',gpu:'كرت الشاشة',storage:'التخزين',network:'الشبكة'};
+  const weighted={cpu:(b.cpu||0)/30,memory:(b.memory||0)/30,gpu:(b.gpu||0)/30,storage:(b.storage||0)/5,network:(b.network||0)/5};
+  const key=Object.entries(weighted).sort((a,b)=>a[1]-b[1])[0]?.[0]||'cpu';
+  return labels[key];
+}
+
+function modelMissionRecommendations(info, perf){
+  const tier=perf.tier || 'mid'; const available=AI_MODELS.free[tier]||AI_MODELS.free.mid;
+  const pick=(cat)=>available.find(m=>m.category===cat)||AI_MODELS.free.good.find(m=>m.category===cat)||available[0];
+  return [
+    ['محادثة عامة', available[0]], ['برمجة',pick('code')], ['استدلال',pick('reasoning')]
+  ];
+}
+
+function renderIntelligenceHub(){
+  const el=document.getElementById('intelligenceHub'); if(!el) return;
+  if(!systemData){return;}
+  const {info,perf}=systemData, ready=estimateLocalAIReadiness(info,perf), decisions=buildSmartDecisions(info,perf), missions=modelMissionRecommendations(info,perf);
+  const privacyScore=Math.max(55,100-(navigator.onLine?8:0)-(info.connection?4:0));
+  el.innerHTML=`<div class="smart-grid">
+    <section class="smart-card"><div class="smart-kicker">Local AI Readiness</div><div class="smart-score">${ready.score}/100</div><h3>${ready.className}</h3><div class="smart-muted">حجم نموذجي مقترح: ${ready.maxModel} • Quantization: ${ready.quant}</div><div class="smart-meter"><i style="width:${ready.score}%"></i></div></section>
+    <section class="smart-card"><div class="smart-kicker">Primary Bottleneck</div><div class="smart-score" style="font-size:1.7rem">${getBottleneck(info,perf)}</div><h3>عنق الاختناق الأبرز</h3><div class="smart-muted">التحليل مبني على بيانات المتصفح ونتيجة تقييم مكونات الجهاز الحالية.</div></section>
+    <section class="smart-card"><div class="smart-kicker">Privacy Posture</div><div class="smart-score">${privacyScore}/100</div><h3>خصوصية محلية قوية</h3><div class="smart-muted">WebLLM وIndexedDB يبقيان معظم العمل داخل جهازك عند استخدام الوضع المحلي.</div><div class="smart-meter"><i style="width:${privacyScore}%"></i></div></section>
+    <section class="smart-card wide"><div class="smart-kicker">Decision Engine</div><h3>قرارات مقترحة الآن</h3><div class="decision-list">${decisions.map(d=>`<div class="decision"><strong>${d[0]}</strong><small>${d[1]}</small></div>`).join('')}</div></section>
+    <section class="smart-card"><div class="smart-kicker">Mission Router</div><h3>أفضل اختيار حسب المهمة</h3><div class="decision-list">${missions.map(([label,m])=>`<div class="decision"><strong>${label}</strong><small>${m.name} • ${m.size}</small></div>`).join('')}</div></section>
+    <section class="smart-card full"><div class="smart-kicker">Smart Actions</div><h3>أدوات القرار السريع</h3><div class="chip-row"><span class="smart-chip">RAM ${info.memory||'?'} GB</span><span class="smart-chip">VRAM ${info.gpuMemoryEstimate||0} GB</span><span class="smart-chip">CPU ${info.cores||'?'} cores</span><span class="smart-chip">${info.webgpuSupported?'WebGPU Ready':'WebGPU Unavailable'}</span></div><div class="action-row"><button class="mini-action" onclick="askSmartQuestion('ما أفضل نموذج محلي لجهازي ولماذا؟')">أفضل نموذج محلي</button><button class="mini-action" onclick="askSmartQuestion('هل أحتاج لترقية جهازي لتشغيل الذكاء الاصطناعي؟')">مستشار الترقية</button><button class="mini-action" onclick="askSmartQuestion('اعطني خطة لتحسين سرعة تشغيل النماذج المحلية')">خطة تحسين الأداء</button><button class="mini-action" onclick="switchMainTabFromCode('benchmark')">تشغيل Benchmark</button></div></section>
+  </div>`;
+}
+
+async function smartAnalyzeNow(){
+  if(!systemData){ await startAnalysis(); }
+  renderIntelligenceHub();
+}
+function switchMainTabFromCode(tab){ const btn=[...document.querySelectorAll('.main-tab')].find(b=>b.getAttribute('onclick')?.includes(`'${tab}'`)); if(btn) btn.click(); }
+function askSmartQuestion(q){ switchMainTabFromCode('chat'); const input=document.getElementById('chatInput'); if(input){input.value=q;sendChatMessage();} }
+
+function runSmartAdvisorQuery(q){
+  if(!systemData) return 'ابدأ تحليل الجهاز أولاً حتى أستطيع تقديم توصية مخصصة.';
+  const {info,perf}=systemData, ready=estimateLocalAIReadiness(info,perf), bottleneck=getBottleneck(info,perf);
+  const query=q.toLowerCase();
+  if(query.includes('ترقي')||query.includes('upgrade')) return `**مستشار الترقية**\nجاهزية الذكاء المحلي: ${ready.score}/100 (${ready.className}).\nعنق الاختناق الأبرز: ${bottleneck}.\nالأولوية: ${bottleneck==='الذاكرة'?'زيادة RAM قبل أي شيء آخر':bottleneck==='كرت الشاشة'?'ترقية GPU إذا كان هدفك نماذج أكبر أو توليد صور':'اختبر الأداء الفعلي أولاً قبل شراء عتاد جديد'}.`;
+  if(query.includes('سرعة')||query.includes('تحسين')) return `**خطة تحسين الأداء**\n1. استخدم نموذجاً ضمن ${ready.maxModel}.\n2. ابدأ بكمّية ${ready.quant}.\n3. قلّل طول السياق عند البطء.\n4. أغلق التطبيقات الثقيلة أثناء الاستدلال.\n5. قارن النتيجة عبر Benchmark قبل وبعد التغيير.`;
+  if(query.includes('خصوص')) return `**تقييم الخصوصية**\nاختر WebLLM أو Ollama للمعالجة المحلية، وتجنب إرسال المستندات الحساسة إلى خدمات خارجية ما لم تكن تحتاج ذلك فعلاً.`;
+  return null;
+}
+
+// ==================== Cognitive Agent Core v5 ====================
+const cognitiveState = {
+  lastIntent: null,
+  lastEntities: [],
+  lastUserText: '',
+  summary: '',
+  confidence: 0,
+  activeEngine: 'auto'
 };
+
+function normalizeArabic(text='') {
+  return text.toLowerCase()
+    .replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي')
+    .replace(/[ًٌٍَُِّْـ]/g,'').replace(/[^\p{L}\p{N}\s.+#-]/gu,' ')
+    .replace(/\s+/g,' ').trim();
+}
+
+function tokenize(text='') {
+  const stop = new Set(['من','في','على','الى','عن','ما','ماذا','هل','هو','هي','هذا','هذه','ذلك','انا','انت','عاوز','اريد','ممكن','طيب','طب','مع','لي','ليا','جدا','او','و']);
+  return normalizeArabic(text).split(' ').filter(x => x.length > 1 && !stop.has(x));
+}
+
+function inferIntent(text='') {
+  const q=normalizeArabic(text);
+  const intents=[
+    ['greeting',['مرحبا','السلام','اهلا','hello','hi']],
+    ['best_model',['افضل نموذج','انسب نموذج','نموذج مناسب','انصحني','model']],
+    ['coding',['برمجه','كود','coding','code','developer']],
+    ['upgrade',['ترقيه','اطور الجهاز','upgrade','رام','كرت شاشه']],
+    ['performance',['بطئ','بطيء','سرعه','اداء','تحسين','performance']],
+    ['privacy',['خصوصيه','امن','سري','privacy','security']],
+    ['ollama',['ollama','اواما','نموذج محلي','local ai']],
+    ['rag',['مستند','ملف','قاعده المعرفه','rag','وثيقه']],
+    ['compare',['قارن','مقارنه','الفرق','افضل بين','compare']],
+    ['hardware',['جهازي','المعالج','cpu','gpu','vram','ram','مواصفات']],
+    ['install',['ثبت','تثبيت','install','تنزيل']],
+    ['help',['مساعده','قدراتك','ماذا تستطيع','help']]
+  ];
+  let best={intent:'general',score:0};
+  for(const [intent,terms] of intents){
+    let score=0; for(const t of terms) if(q.includes(normalizeArabic(t))) score += t.includes(' ')?3:1;
+    if(score>best.score) best={intent,score};
+  }
+  // follow-up: short/elliptical messages inherit the previous topic
+  if(best.intent==='general' && tokenize(text).length<=5 && cognitiveState.lastIntent) {
+    best={intent:cognitiveState.lastIntent,score:0.75};
+  }
+  return best;
+}
+
+function extractEntities(text='') {
+  const q=normalizeArabic(text), out=[];
+  const names=['qwen','llama','mistral','deepseek','phi','gemma','ollama','webllm','windows','nvidia','amd','intel'];
+  names.forEach(n=>{if(q.includes(n)) out.push(n)});
+  const nums=q.match(/\b\d+(?:\.\d+)?\s*(?:gb|b|ram|vram)?\b/g)||[];
+  return [...new Set([...out,...nums])];
+}
+
+function retrieveRAGContext(query, limit=3) {
+  if(!ragStore.documents?.length) return [];
+  const qTokens=tokenize(query);
+  const scored=[];
+  for(const doc of ragStore.documents){
+    const content=doc.content||'';
+    if(!content || content.startsWith('[PDF -')) continue;
+    const chunks=content.match(/[\s\S]{1,900}/g)||[];
+    chunks.forEach((chunk,i)=>{
+      const low=normalizeArabic(chunk); let score=0;
+      qTokens.forEach(t=>{ if(low.includes(t)) score += 2; });
+      cognitiveState.lastEntities.forEach(t=>{ if(low.includes(normalizeArabic(t))) score += 1; });
+      if(score) scored.push({doc:doc.name,chunk:i+1,score,text:chunk.slice(0,900)});
+    });
+  }
+  return scored.sort((a,b)=>b.score-a.score).slice(0,limit);
+}
+
+function deviceContextText(){
+  if(!systemData) return 'لم يتم تحليل الجهاز بعد.';
+  const {info,perf}=systemData;
+  return `التقييم ${perf.score}/100 (${perf.tierLabel})، CPU ${info.cores} نواة، RAM ${info.memory||'غير معروفة'}GB، GPU ${info.gpu||'غير معروف'}، VRAM تقديري ${info.gpuMemoryEstimate||'غير معروف'}GB، WebGPU ${info.webgpu?'متاح':'غير متاح'}.`;
+}
+
+async function buildCognitiveContext(userText){
+  const history=await getConversations(24);
+  const inferred=inferIntent(userText);
+  const entities=extractEntities(userText);
+  if(entities.length) cognitiveState.lastEntities=entities;
+  cognitiveState.lastIntent=inferred.intent;
+  cognitiveState.lastUserText=userText;
+  cognitiveState.confidence=Math.min(1, inferred.score/3 || .45);
+  const rag=retrieveRAGContext(userText,3);
+  return {history,inferred,entities,rag,device:deviceContextText()};
+}
+
+function cognitiveFallback(text, ctx){
+  const intent=ctx.inferred.intent;
+  if(intent==='greeting') return `أهلاً بك. أنا **AI Advisor Cognitive**. أستطيع فهم أسئلتك عن جهازك والنماذج المحلية والأداء وOllama والمستندات، وسأحافظ على سياق الحديث بدل الاعتماد على كلمة مفتاحية واحدة.`;
+  if(intent==='best_model' || intent==='coding'){
+    if(!systemData) return 'أفهم أنك تريد توصية نموذج. شغّل تحليل الجهاز أولاً لأن RAM وGPU وWebGPU تغيّر الاختيار جذرياً.';
+    const rec=modelMissionRecommendations(systemData.info,systemData.perf);
+    const chosen=intent==='coding' ? rec.find?.(x=>/code|برمج/i.test(JSON.stringify(x))) : rec[0];
+    if(chosen) return `**فهمت هدفك: ${intent==='coding'?'البرمجة':'اختيار أفضل نموذج'}**\nبناءً على جهازك: ${deviceContextText()}\nترشيحي الحالي: **${chosen.name||chosen.model||JSON.stringify(chosen)}**. إذا قلت لي هل الأولوية للسرعة أم الجودة سأضيّق الاختيار أكثر.`;
+  }
+  const smart=runSmartAdvisorQuery(text); if(smart) return smart;
+  if(intent==='hardware') return `**قراءة الجهاز**\n${deviceContextText()}\n${systemData ? `عنق الاختناق المتوقع: **${getBottleneck(systemData.info,systemData.perf)}**. اسألني مثلاً: ماذا أطور أولاً؟ أو ما أكبر نموذج أستطيع تشغيله؟` : 'شغّل التحليل لأعطيك نتيجة مخصصة.'}`;
+  if(intent==='ollama') return `**فهمت أنك تتحدث عن Ollama.**\nسأتعامل معه كمحرك محلي وليس كدردشة منفصلة. عند اتصاله سأرسل له سياق المحادثة ومواصفات جهازك ونتائج RAG تلقائياً. اضغط فحص Ollama ثم اسألني بصورة طبيعية.`;
+  if(intent==='rag'){
+    if(ctx.rag.length) return `وجدت معلومات مرتبطة بسؤالك في قاعدة المعرفة:\n${ctx.rag.map((r,i)=>`${i+1}. **${r.doc}** — ${r.text.slice(0,220).replace(/\s+/g,' ')}…`).join('\n')}\n\nيمكنك الآن سؤالي بتفصيل أكبر عن هذه المعلومات.`;
+    return ragStore.documents.length ? 'فهمت أن سؤالك عن مستنداتك، لكن لم أجد مقطعاً مطابقاً بدرجة كافية. اذكر اسم الملف أو الفكرة المطلوبة وسأضيّق البحث.' : 'لا توجد مستندات في قاعدة المعرفة حالياً. ارفع ملفاً من قسم قاعدة المعرفة ثم اسألني عنه مباشرة.';
+  }
+  if(intent==='install') return `إذا كان المقصود تثبيت الذكاء المحلي: **Ollama** هو المسار الأبسط. بعد تثبيته وتشغيله، استخدم قسم Ollama للفحص؛ النسخة v5 ستكتشف النماذج المثبتة وتستخدم أحدها مع سياق المحادثة.`;
+  if(intent==='help') return `أنا الآن أتعامل مع **المقصد + سياق المحادثة + مواصفات الجهاز + قاعدة المعرفة**. يمكنك أن تقول: «رشح لي نموذج للبرمجة»، ثم «طيب الأخف؟»، ثم «وهل يشتغل على جهازي؟» وسأحافظ على نفس الموضوع.`;
+  const topic=cognitiveState.lastIntent && cognitiveState.lastIntent!=='general' ? ` أفهم أن السياق الحالي متعلق بـ **${cognitiveState.lastIntent}**.`:'';
+  return `فهمت جزءاً من طلبك لكن لا أريد تخمين المقصود.${topic} وضّح الهدف في جملة واحدة، مثلاً: «أريد تشغيل نموذج محلي سريع للبرمجة على جهازي».`;
+}
+
+async function resolveBestEngine(){
+  if(settings.engine && settings.engine!=='auto' && settings.engine!=='rules') return settings.engine;
+  if(agentEngine) return 'webllm';
+  try { const r=await fetch('http://localhost:11434/api/tags'); if(r.ok) return 'ollama'; } catch(e){}
+  return 'cognitive';
+}
 
 let agentContext = { hasAnalyzed: false, lastTopic: null, userInterests: [] };
 
 // ==================== Chat Logic ====================
 async function sendChatMessage() {
-  const input = document.getElementById('chatInput');
-  const text = input.value.trim();
-  if (!text) return;
-  
-  input.value = '';
-  addChatMessage('user', text);
-  saveConversation({ type: 'user', text });
-  
-  document.getElementById('sendBtn').disabled = true;
-  addTypingIndicator();
-  
-  try {
+  const input=document.getElementById('chatInput');
+  const text=input.value.trim(); if(!text) return;
+  input.value=''; addChatMessage('user',text); await saveConversation({type:'user',text});
+  document.getElementById('sendBtn').disabled=true; addTypingIndicator();
+  try{
+    const ctx=await buildCognitiveContext(text);
+    const engine=await resolveBestEngine(); cognitiveState.activeEngine=engine;
     let response;
-    
-    if (settings.engine === 'webllm' && agentEngine) {
-      const messages = await buildWebLLMMessages(text);
-      response = await chatWithWebLLM(messages);
-    } else if (settings.engine === 'ollama') {
-      response = await chatWithOllama(text);
-    } else {
-      await sleep(500 + Math.random() * 500);
-      response = AgentBrain.respond(text);
-    }
-    
-    removeTypingIndicator();
-    addChatMessage('bot', response);
-    saveConversation({ type: 'bot', text: response });
-    
-    if (settings.ttsEnabled) speak(response);
-    
-    const chatCount = (gamification._chatCount || 0) + 1;
-    gamification._chatCount = chatCount;
-    if (chatCount >= 10) unlockAchievement('chat_master');
-  } catch(e) {
-    removeTypingIndicator();
-    addChatMessage('bot', `❌ خطأ: ${e.message}`);
-  }
-  
-  document.getElementById('sendBtn').disabled = false;
-  input.focus();
+    if(engine==='webllm' && agentEngine) response=await chatWithWebLLM(await buildWebLLMMessages(text,ctx));
+    else if(engine==='ollama') response=await chatWithOllama(text,ctx);
+    else response=cognitiveFallback(text,ctx);
+    removeTypingIndicator(); addChatMessage('bot',response); await saveConversation({type:'bot',text:response});
+    if(settings.ttsEnabled) speak(response);
+    gamification._chatCount=(gamification._chatCount||0)+1; if(gamification._chatCount>=10) unlockAchievement('chat_master');
+  }catch(e){ removeTypingIndicator(); addChatMessage('bot',`حدث خطأ في المحرك الذكي: ${e.message}`); }
+  document.getElementById('sendBtn').disabled=false; input.focus();
 }
 
-async function buildWebLLMMessages(userText) {
-  const systemPrompt = `أنت Agent Ultra، خبير في نماذج الذكاء الاصطناعي وتحليل الأجهزة.
-${agentContext.hasAnalyzed ? `
-بيانات جهاز المستخدم:
-- التقييم: ${systemData.perf.score}/100 (${systemData.perf.tierLabel})
-- المعالج: ${systemData.info.cores} نواة
-- الذاكرة: ${systemData.info.memory || 'غير معروفة'} GB
-- كرت الشاشة: ${systemData.info.gpu}
-- VRAM: ${systemData.info.gpuMemoryEstimate} GB
-` : 'لم يتم تحليل الجهاز بعد.'}
-
-أجب بالعربية، بإيجاز، وبشكل مفيد.`;
-
-  const history = await getConversations(10);
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    ...history.map(h => ({ role: h.type === 'user' ? 'user' : 'assistant', content: h.text })),
-    { role: 'user', content: userText }
-  ];
-  return messages;
+async function buildWebLLMMessages(userText, ctx=null) {
+  ctx=ctx||await buildCognitiveContext(userText);
+  const ragText=ctx.rag.length ? ctx.rag.map(r=>`[${r.doc}#${r.chunk}] ${r.text}`).join('\n\n') : 'لا يوجد سياق RAG مطابق.';
+  const systemPrompt=`أنت AI Advisor Ultra v5 Cognitive، وكيل تقني لاتخاذ القرار. افهم نية المستخدم وسياق المتابعة ولا تعتمد على كلمات مفتاحية منفردة. استخدم بيانات الجهاز عندما تكون ذات صلة، واستشهد باسم المستند عندما تستخدم RAG. لا تدّع تنفيذ أداة لم تنفذها. إذا كانت معلومة أساسية ناقصة اسأل سؤال توضيح واحد فقط. ميّز بين البيانات المكتشفة والتقديرات. أجب بالعربية الطبيعية وبشكل عملي.\n\nالجهاز: ${ctx.device}\nالنية المقدرة: ${ctx.inferred.intent}\nسياق RAG:\n${ragText}`;
+  const hist=ctx.history.slice(-20).map(h=>({role:h.type==='user'?'user':'assistant',content:h.text}));
+  return [{role:'system',content:systemPrompt},...hist,{role:'user',content:userText}];
 }
 
-async function chatWithOllama(text) {
-  const models = AI_MODELS.free[systemData?.perf?.tier || 'mid'];
-  const modelName = models[0].name.split(' ')[0].toLowerCase().replace(/[^a-z0-9]/g, '') + ':latest';
-  
-  try {
-    const res = await fetch('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: modelName,
-        prompt: text,
-        stream: false
-      })
-    });
-    const data = await res.json();
-    return data.response || 'لا رد';
-  } catch(e) {
-    return '❌ فشل الاتصال بـ Ollama. جرب WebLLM أو وضع القواعد.';
-  }
+async function chatWithOllama(text, ctx=null) {
+  ctx=ctx||await buildCognitiveContext(text);
+  try{
+    const tags=await fetch('http://localhost:11434/api/tags');
+    if(!tags.ok) throw new Error('Ollama غير متصل');
+    const td=await tags.json();
+    if(!td.models?.length) return 'Ollama متصل، لكن لا يوجد نموذج مثبت. ثبّت نموذجاً أولاً ثم أعد المحاولة.';
+    const modelName=td.models[0].name;
+    const ragText=ctx.rag.map(r=>`[${r.doc}#${r.chunk}] ${r.text}`).join('\n\n');
+    const system=`أنت AI Advisor Ultra v5 Cognitive. افهم المقصد والمتابعات، واستخدم سياق الجهاز والمستندات. لا تخترع معلومات. الجهاز: ${ctx.device}${ragText?`\nمقاطع من قاعدة المعرفة:\n${ragText}`:''}`;
+    const messages=[{role:'system',content:system},...ctx.history.slice(-16).map(h=>({role:h.type==='user'?'user':'assistant',content:h.text})),{role:'user',content:text}];
+    const res=await fetch('http://localhost:11434/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelName,messages,stream:false,options:{temperature:.55}})});
+    if(!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
+    const data=await res.json(); return data.message?.content||'لم يصل رد من النموذج.';
+  }catch(e){ return `تعذر استخدام Ollama الآن (${e.message}). استخدم الوضع التلقائي أو WebLLM.`; }
 }
 
 function addChatMessage(type, text) {
   const messages = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = `message ${type}`;
-  const formatted = text
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.+?)`/g, '<code style="background:rgba(0,0,0,0.4); padding:2px 6px; border-radius:4px; color:#2ecc71;">$1</code>')
-    .replace(/\n/g, '<br>');
-  div.innerHTML = formatted;
+  div.innerHTML = formatSafeRichText(text);
   messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
 }
@@ -1257,6 +1353,7 @@ async function startAnalysis() {
   
   addChatMessage('system', '✅ اكتمل التحليل! اسألني أي شيء');
   updateQuickReplies();
+  renderIntelligenceHub();
   
   showToast('✅ اكتمل التحليل!');
   btn.disabled = false;

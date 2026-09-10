@@ -1,5 +1,5 @@
 /* Service Worker - AI Advisor Ultra */
-const CACHE_NAME = 'ai-advisor-v3';
+const CACHE_NAME = 'ai-advisor-v5';
 const URLS_TO_CACHE = [
   './',
   './index.html',

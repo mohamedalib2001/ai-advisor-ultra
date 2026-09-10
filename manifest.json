@@ -1,12 +1,12 @@
 {
-  "name": "AI Advisor Ultra",
-  "short_name": "AI Advisor",
-  "description": "Agent ذكي كامل لتحليل الأجهزة وتوصيات نماذج الذكاء الاصطناعي",
+  "name": "AI Advisor Ultra 5",
+  "short_name": "AI Advisor 5",
+  "description": "Cognitive local AI advisor with context memory and automatic engine routing",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0f0c29",
-  "theme_color": "#7b2ff7",
+  "background_color": "#080b18",
+  "theme_color": "#10142d",
   "lang": "ar",
   "dir": "rtl",
   "icons": [

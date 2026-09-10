@@ -1,21 +1,25 @@
-# 🚀 AI Advisor Ultra
+# AI Advisor Ultra 4 — Neural Device Intelligence
 
-> Agent ذكي كامل يعمل في المتصفح — بدون خادم، بدون تكلفة
+نسخة مطورة من AI Advisor Ultra تعمل بالكامل كواجهة ثابتة قابلة للنشر على GitHub Pages.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-افتح_الآن-blue)](https://mohamedalib2001.github.io/ai-advisor-ultra/)
+## الجديد في v4
+- Intelligence Hub لاتخاذ القرار بعد تحليل الجهاز
+- Local AI Readiness Score
+- اكتشاف عنق الاختناق الرئيسي
+- Mission Router لاختيار نموذج حسب المهمة
+- مستشار ترقية الجهاز وتحسين الأداء
+- Privacy posture مبسط
+- واجهة Mobile-first محسنة وتبويبات قابلة للتمرير
+- حماية أفضل لرسائل الدردشة من HTML injection
+- الحفاظ على WebLLM / Ollama / RAG / OCR / Benchmark / PWA / Voice / IndexedDB
 
-## ✨ الميزات
-- 🧠 **WebLLM** — نموذج AI حقيقي في المتصفح
-- 🎤 **Voice** — إدخال صوتي عربي
-- 👁️ **Vision** — تحليل الصور (OCR)
-- 🔌 **Ollama** — تكامل مع النماذج المحلية
-- 📚 **RAG** — قاعدة معرفة شخصية
-- ⚡ **Benchmark** — قياس أداء حقيقي
-- 🏆 **Gamification** — نقاط وإنجازات
-- 📱 **PWA** — قابل للتثبيت
+## النشر على GitHub Pages
+استبدل ملفات المستودع بالملفات: index.html, app.js, manifest.json, sw.js ثم اعمل commit/push.
 
-## 🛠️ التقنيات
-`Vanilla JS` `WebLLM` `WebGPU` `Chart.js` `Tesseract.js` `IndexedDB` `Web Speech API`
 
-## 📄 الترخيص
-MIT
+## v5 Cognitive Core
+- Auto engine router: WebLLM / Ollama / cognitive fallback
+- Intent understanding and follow-up context
+- Automatic RAG retrieval in chat
+- Ollama /api/chat with history + device context + RAG
+- Longer WebLLM context and stronger system prompt
